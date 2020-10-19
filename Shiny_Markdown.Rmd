@@ -1,0 +1,186 @@
+---
+title: "Shiny_Project"
+author: "Mark Carthon"
+date: "October 2020"
+output:
+  ioslides_presentation: default
+  beamer_presentation: default
+  slidy_presentation: default
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+The object of my Shiny project was to answer the following question:
+
+What would be Starbuck's country selection criterion? 
+
+This question statement is very straightforward and easy to formulate, but 
+finding the answer, or at least some good, reasonable insight, proved to be much more difficult, at least for me.
+
+
+Adjust my current working directory.
+
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+setwd("~/NYCDSA/world_bank_gdp")
+```
+
+Download the libraries I will need.
+
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(RColorBrewer)
+#library(ggpubr) does not work for some reason
+library(Hmisc) # for correlation calculation
+library(stringr)
+```
+
+Load the datasets I need.
+
+This dataset contains all Starbucks locations around the world from 2017.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+starbucks_loc = read.csv('directory_df.csv')
+View(starbucks_loc)
+```
+
+This dataset contains the country code for each country. It is useful because it
+will help me join datasets together if they share common country names, or country
+codes, etc.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+country_code = read.csv('country_code.csv')
+View(country_code)
+```
+
+This dataset contains the continent names, continent codes, etc. This will also be useful for communicating between different datasets.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+continent_country = read.csv('continent_country.csv')
+ View(continent_country)
+```
+
+This dataset contains the GDP information for each country.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+all_content = readLines("gdp_by_country.csv")
+skip_second = all_content[-(1:4)]
+world_gdp = read.csv(textConnection(skip_second), 
+                     header = TRUE, stringsAsFactors = FALSE)
+View(world_gdp)
+```
+
+This dataset contains the illiteracy rates for each country.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+illiteracy <- read.csv("illiteracy.csv", stringsAsFactors = F)
+View(illiteracy)
+```
+
+This dataset contains the crime rate for each country.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+crime = read.csv('crime_rate.csv', stringsAsFactors = F)
+View(crime)
+```
+
+This dataset contains the average income for each country.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+income = read.csv('income.csv', stringsAsFactors = F)
+View(income)
+```
+
+This dataset contains the population for each country.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+world_pop = read.csv('world_pop.csv', stringsAsFactors = F)
+View(world_pop)
+```
+
+The important variables in my aggregated dataframe are:
+
+1. Population
+2. GDP
+3. GDP per capita
+4. Median Household Income
+5. Median Income per capita
+6. Store Count (per country)
+7. Store Count per capita
+8. Crime rate per capita
+9. Illiteracy rate (as a %)
+
+I created a dataframe that contained all of these variables. This required me to use dplyr many times. Some of the difficulty I faced doing this came from the fact that I used different datasets. The country identifiers (name, country code, etc.) were not uniform across the different datasets. I joined the country_code and continent_code datasets. These were useful for helping me communicate between datasets. This was important and  helped me aggregate the data. This process was not flawless though because I did lose some data. In some cases, the only way I could have saved all of the data between datasets would be to manually enter the information into the files, but time would not permit.
+
+One of the main reasons I lost data was because the country names were different. For example, one dataframe might have: Bahrain, Kingdom of. ANother might have: Bahrain. I wasn't sure how to deal with this situation, but I was fortunate that some of the dataframes contained country numbers. Country numbers will always be uniform between datasets, so this made the job easier.
+
+After doing this data manipulation, I had my final dataframe.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+Shiny_data = read.csv('Shiny_data.csv', stringsAsFactors = F)
+View(Shiny_data)
+```
+
+Then I wanted to try to answer the original question:
+
+What would be Starbuck's country selection criterion? 
+
+In order to answer the question, I calculated the correlation of each of the variables
+and looked for pairs with correlations close to 1 or -1.
+
+I used the 'Hmisc' package to calculate the correlations with the 'rcorr' function.
+The 3rd column of my dataframe is the store count for each country and the other variables are as follows:
+
+1. Population
+2. GDP
+3. GDP per capita
+4. Median Household Income
+5. Median Income per capita
+6. Store Count (per country)
+7. Store Count per capita
+8. Crime rate per capita
+9. Illiteracy rate (as a %)
+
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+correlations = rcorr(as.matrix(Shiny_data[,3:11]))
+```
+What I found is this:
+
+# Store Count <-> GDP 
+The pearson correlation for Store Count per country and GDP was 0.91.
+This shows a strong linear correlation.
+
+# Stores per capita <-> Median Household Income 
+The pearson correlation for Stores per capita and Medium Household Income was 0.81.
+This shows a string linear correlation.
+
+# Stores Per Capita <-> Median per capita income 
+The pearson correlation for Stores per capita and Median per capita income was 0.63.
+This shows a strong linear correlation.
+
+
+I wrote my data as a dataframe in order to use it in my Shiny app.
+```{r, warning=FALSE, message=FALSE, include=TRUE}
+#write.csv(x = Shiny_data, file = 'Shiny_data.csv', row.names = F)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
